@@ -1,0 +1,91 @@
+﻿<mah:MetroWindow x:Class="Paya.Automation.Editor.Updater.UpdatesWindow"
+				 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				 xmlns:local="clr-namespace:Paya.Automation.Editor.Updater"
+				 xmlns:editor="clr-namespace:Paya.Automation.Editor"
+				 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+				 mc:Ignorable="d"
+				 ShowActivated="True"
+				 GlowBrush="{DynamicResource HighlightBrush}"
+				 BorderBrush="{DynamicResource AccentColorBrush}"
+				 BorderThickness="1"
+				 Padding="4"
+				 Margin="4"
+				 Icon="/Resources/Favicon.ico"
+				 FlowDirection="LeftToRight"
+				 Title="Updates" Height="480" Width="640">
+	<Grid x:Name="LayoutRoot">
+		<DataGrid x:Name="UpdatersDataGrid"
+				  IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="All"
+				  Style="{DynamicResource AzureDataGrid}"
+				  ItemsSource="{Binding Source={x:Static editor:App.Current}, Path=(editor:App.ClientUpdaterFactory).Updaters}">
+			<DataGrid.Columns>
+				<DataGridTemplateColumn Header=" " MinWidth="36">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<Path Width="24" Height="24" Stretch="Uniform" Fill="#FF3F51B5"
+								  VerticalAlignment="Center"
+								  Data="F1 M 49.0833,33.25C 53.4555,33.25 57,36.7944 57,41.1666C 57,45.5389 53.3723,48.9999 49,49L 23,49.0001C 20.8139,49 19,47.3111 19,45.125C 19,43.1866 20.3931,41.5737 22.2327,41.233C 22.1892,40.9533 22.1667,40.6667 22.1667,40.3749C 22.1667,37.3993 24.5122,34.9712 27.4553,34.8389C 28.7579,31.1462 32.2782,28.4999 36.4167,28.4999C 40.3458,28.4999 43.7179,30.8853 45.1637,34.2868C 46.3193,33.627 47.6573,33.25 49.0833,33.25 Z" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="آدرس سرور" Width="*">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<TextBlock Text="{Binding BaseUrl, Mode=OneTime}" TextWrapping="WrapWithOverflow" Padding="8"
+									   Margin="8"
+									   VerticalAlignment="Center" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="تاریخ ایجاد" Width="150">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<TextBlock Text="{Binding CreationDate, Mode=OneTime, Converter={StaticResource CultureDateConverter}, ConverterParameter='yyyy/MM/dd hh:mm'}"
+									   TextWrapping="WrapWithOverflow" Padding="8" Margin="8"
+									   VerticalAlignment="Center" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="وضعیت" Width="120">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<TextBlock Text="{Binding State, Mode=OneWay}" TextWrapping="WrapWithOverflow" Padding="8"
+									   Margin="8"
+									   VerticalAlignment="Center" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="دوره‌ی بررسی" Width="100">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<TextBlock Text="{Binding Interval}" TextWrapping="WrapWithOverflow" Padding="8"
+									   Margin="8"
+									   VerticalAlignment="Center" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="حذف">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="local:PayaClientUpdater">
+							<Button x:Name="DeleteButton" Tag="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Center" Click="DeleteButton_Click"
+									ToolTip="حذف">
+								<Path Width="16" Height="16" Stretch="Uniform" Fill="#FFB71C1C"
+									  Data="F1 M 15.8333,41.3605L 19.1921,38.0017L 24.79,43.5996L 30.3879,38.0017L 33.7467,41.3605L 28.1488,46.9584L 33.7467,52.5563L 30.3879,55.9151L 24.79,50.3171L 19.1921,55.9151L 15.8333,52.5563L 21.4313,46.9584L 15.8333,41.3605 Z M 49.0833,33.25C 53.4555,33.25 57,36.7945 57,41.1667C 57,45.5389 53.4045,48.9999 49,49L 31.75,49L 29.8154,46.9584L 35.4133,41.3605L 30.3879,36.4283L 24.5867,42.2296L 22.3442,39.7371C 23.25,37 25.2617,34.9376 27.4553,34.8389C 28.7579,31.1462 32.2783,28.4999 36.4167,28.4999C 40.3459,28.4999 43.7179,30.8853 45.1637,34.2869C 46.3193,33.627 47.6573,33.25 49.0833,33.25 Z" />
+							</Button>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+
+	</Grid>
+</mah:MetroWindow>

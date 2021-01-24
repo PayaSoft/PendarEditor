@@ -1,0 +1,88 @@
+﻿<mah:MetroWindow x:Class="Paya.Automation.Editor.AboutWindow"
+				 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+				 mc:Ignorable="d"
+				 Title="درباره" Height="420" Width="640"
+				 FlowDirection="RightToLeft"
+				 FontSize="15" Icon="/Paya.Automation.Editor;component/Resources/Favicon.ico"
+				 GlowBrush="{DynamicResource AccentColorBrush}"
+				 BorderBrush="{DynamicResource AccentColorBrush}"
+				 BorderThickness="1"
+				 IsMaxRestoreButtonEnabled="False"
+				 ShowMaxRestoreButton="False"
+				 x:Name="TheAboutWindow"
+				 SaveWindowPosition="False"
+				 Padding="4"
+				 Margin="4"
+				 Loaded="TheAboutWindow_Loaded"
+				 WindowStartupLocation="CenterScreen"
+				 WindowButtonCommandsOverlayBehavior="Flyouts" HorizontalAlignment="Center" VerticalAlignment="Center"
+				  IgnoreTaskbarOnMaximize="True"
+				 WindowStyle="ToolWindow">
+    <Grid>
+        <Grid Margin="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" MinHeight="48" />
+            </Grid.RowDefinitions>
+
+            <Image Grid.Row="0" Source="Resources/About.jpg" Stretch="Uniform" VerticalAlignment="Top" />
+
+            <Viewbox Grid.Row="1" Stretch="Uniform">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="ویرایشگر اتوماسیون اداری پندار"
+							   Foreground="#01579B"
+							   Margin="4"
+					   FontWeight="Bold"
+					   HorizontalAlignment="Center" />
+
+                    <TextBlock Text="نسخه ویرایشگر"
+							   Foreground="#3F51B5"
+							   Margin="4"
+					   Grid.Row="1" Grid.Column="0"  />
+
+                    <TextBlock Text="{Binding ElementName=TheAboutWindow, Path=ProductVersion}"
+							   Foreground="#263238"
+							   Margin="4"
+					   Grid.Row="1" Grid.Column="1"  />
+
+                    <TextBlock Text="نسخه ساخت"
+							   Foreground="#3F51B5"
+							   Margin="4"
+					   Grid.Row="2" Grid.Column="0"  />
+
+                    <TextBlock Text="{Binding ElementName=TheAboutWindow, Path=AssemblyVersion}"
+							   Foreground="#263238"
+							   Margin="4"
+					   Grid.Row="2" Grid.Column="1"  />
+
+                </Grid>
+
+            </Viewbox>
+
+            <Button x:Name="OKButton"
+					Grid.Row="2" Style="{DynamicResource AccentedSquareButtonStyle}" Content="تایید" 
+					MinWidth="120"
+					Padding="8"
+					Margin="4"
+					VerticalAlignment="Bottom" HorizontalAlignment="Center" Click="OKButton_Click"/>
+
+
+        </Grid>
+
+    </Grid>
+</mah:MetroWindow>

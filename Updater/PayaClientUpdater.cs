@@ -1,0 +1,738 @@
+﻿using System;
+using System.Linq;
+
+namespace Paya.Automation.Editor.Updater
+{
+    using System.Diagnostics;
+    using System.IO;
+    using System.Net.Http;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Threading;
+    using ICSharpCode.SharpZipLib.Zip;
+    using JetBrains.Annotations;
+
+    using Newtonsoft.Json.Linq;
+    using NLog;
+    using Models;
+    using Automation.Models;
+
+    using ThreadState = System.Threading.ThreadState;
+
+    public sealed class PayaClientUpdater : BaseInpc, IDisposable
+    {
+        #region Static Fields
+
+        private static readonly Logger _Logger = LogManager.GetCurrentClassLogger();
+
+        #endregion
+
+        #region Fields
+
+        [NotNull]
+        private readonly PayaApplicationUpdater _ApplicationUpdater;
+
+        private readonly string _baseUrl;
+
+        private readonly Guid _Id = Guid.NewGuid();
+
+        private readonly TimeSpan _Interval;
+
+        private readonly Thread _workerThread;
+
+        private readonly string _baseProgramPath, _baseProgramDirectory;
+
+        private readonly DateTime _CreationDate = DateTime.Now;
+
+        #endregion
+
+        #region Constructors and Destructors
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="PayaClientUpdater" /> class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL.</param>
+        /// <param name="interval">The interval.</param>
+        /// <exception cref="System.ArgumentNullException">baseUrl</exception>
+        public PayaClientUpdater([NotNull] string baseUrl, TimeSpan interval)
+        {
+            if (baseUrl == null)
+                throw new ArgumentNullException("baseUrl");
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+            if (!baseUrl.EndsWith("/", StringComparison.Ordinal))
+                baseUrl += "/";
+
+            this._baseProgramPath = Path.GetFullPath((Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).Location);
+            this._baseProgramDirectory = Path.GetDirectoryName(this._baseProgramPath) ?? Environment.CurrentDirectory;
+
+            this._ApplicationUpdater = new PayaApplicationUpdater(this._baseProgramDirectory);
+
+            this._baseUrl = baseUrl;
+            this._Interval = interval;
+
+            this._workerThread = new Thread(this.DoWork)
+            {
+                IsBackground = true,
+                CurrentCulture = Thread.CurrentThread.CurrentCulture,
+                CurrentUICulture = Thread.CurrentThread.CurrentUICulture,
+                Name = "Updater Thread",
+                Priority = ThreadPriority.Lowest
+            };
+            this._workerThread.Start(new CancellationTokenSource());
+        }
+
+        /// <summary>
+        ///     Finalizes an instance of the <see cref="PayaClientUpdater" /> class.
+        /// </summary>
+        ~PayaClientUpdater()
+        {
+            this.Dispose();
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the base URL.
+        /// </summary>
+        /// <value>
+        /// The base URL.
+        /// </value>
+        public string BaseUrl
+        {
+            get { return this._baseUrl; }
+        }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        /// <value>
+        /// The identifier.
+        /// </value>
+        public Guid Id
+        {
+            get { return this._Id; }
+        }
+
+        /// <summary>
+        /// Gets the interval.
+        /// </summary>
+        /// <value>
+        /// The interval.
+        /// </value>
+        public TimeSpan Interval
+        {
+            get { return this._Interval; }
+        }
+
+        /// <summary>
+        /// Gets the base program path.
+        /// </summary>
+        /// <value>
+        /// The base program path.
+        /// </value>
+        public string BaseProgramPath
+        {
+            get { return this._baseProgramPath; }
+        }
+
+        /// <summary>
+        /// Gets the base program directory.
+        /// </summary>
+        /// <value>
+        /// The base program directory.
+        /// </value>
+        public string BaseProgramDirectory
+        {
+            get { return this._baseProgramDirectory; }
+        }
+
+        /// <summary>
+        /// Gets the creation date.
+        /// </summary>
+        /// <value>
+        /// The creation date.
+        /// </value>
+        public DateTime CreationDate
+        {
+            get { return this._CreationDate; }
+        }
+
+        #endregion
+
+        #region Public Methods and Operators
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <autogeneratedoc />
+        public void Dispose()
+        {
+            if (this._workerThread.ThreadState == ThreadState.Running)
+                this._workerThread.Abort();
+
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        #region Methods
+
+        private bool CheckShouldUpdate(JObject versionInfo, out string newVersionName)
+        {
+            if (!Properties.Settings.Default.EnableUpdate)
+            {
+                newVersionName = "";
+                return false;
+            }
+
+            if (_Logger.IsDebugEnabled)
+                _Logger.Debug("Update checking got response");
+
+            Version serverProductVersion, serverAssemblyVersion;
+
+            if (versionInfo["ProductVersion"] == null || !Version.TryParse(versionInfo["ProductVersion"].Value<string>(), out serverProductVersion))
+                serverProductVersion = new Version();
+            if (versionInfo["AssemblyVersion"] == null || !Version.TryParse(versionInfo["AssemblyVersion"].Value<string>(), out serverAssemblyVersion))
+                serverAssemblyVersion = new Version();
+
+            if (_Logger.IsDebugEnabled)
+                _Logger.Debug("Server version: {0}, {1}", serverProductVersion, serverAssemblyVersion);
+
+            Version clientAssemblyVersion = null;
+            Version clientProductVersion = null;
+
+            bool shouldUpdate = false;
+
+            newVersionName = "";
+
+            if (!File.Exists(this._baseProgramPath))
+            {
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("New Version");
+
+                shouldUpdate = true;
+                newVersionName = "NV";
+            }
+            else
+            {
+                clientAssemblyVersion = AssemblyName.GetAssemblyName(this._baseProgramPath).Version;
+
+                if (clientAssemblyVersion < serverAssemblyVersion)
+                {
+                    if (_Logger.IsDebugEnabled)
+                        _Logger.Debug("Assembly version mismatched: Server={0}, Client={1}", serverAssemblyVersion, clientAssemblyVersion);
+
+                    shouldUpdate = true;
+                    newVersionName = "AV" + serverAssemblyVersion;
+                }
+                else
+                {
+                    var fvi = FileVersionInfo.GetVersionInfo(this._baseProgramPath);
+                    clientProductVersion = Version.Parse(fvi.ProductVersion);
+                    if (clientProductVersion < serverProductVersion)
+                    {
+                        if (_Logger.IsDebugEnabled)
+                            _Logger.Debug("Product version mismatched: Server={0}, Client={1}", serverProductVersion, clientProductVersion);
+
+                        shouldUpdate = true;
+                        newVersionName = "PV" + serverProductVersion;
+                    }
+                    else
+                    {
+                        var updateVersionInfo = versionInfo["UpdateInfoVersion"];
+
+                        if (updateVersionInfo != null)
+                        {
+                            var serverVersioninfoStr = updateVersionInfo.Value<string>();
+                            if (!string.IsNullOrWhiteSpace(serverVersioninfoStr))
+                            {
+                                Version serverVersionInfo;
+                                if (Version.TryParse(serverVersioninfoStr, out serverVersionInfo))
+                                {
+                                    if (_Logger.IsDebugEnabled)
+                                        _Logger.Debug("Server version info = {0}", serverVersionInfo);
+
+                                    var versionInfoFile = Path.Combine(this._baseProgramDirectory, @"updateinfo.txt");
+                                    if (File.Exists(versionInfoFile))
+                                    {
+                                        string versioninfo = File.ReadLines(versionInfoFile).FirstOrDefault();
+
+                                        if (!string.IsNullOrWhiteSpace(versioninfo))
+                                        {
+                                            Version clientVersionInfo;
+                                            if (Version.TryParse(versioninfo, out clientVersionInfo))
+                                            {
+                                                if (clientVersionInfo < serverVersionInfo)
+                                                {
+                                                    if (_Logger.IsDebugEnabled)
+                                                        _Logger.Debug("Server and client version info mismatched: Server={0}, Client={1}", serverVersionInfo, clientVersionInfo);
+
+                                                    shouldUpdate = true;
+                                                    newVersionName = "IV" + serverVersionInfo;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!shouldUpdate)
+            {
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("Version {0} and {1} is up to date", clientAssemblyVersion, clientProductVersion);
+
+
+                return false;
+            }
+
+            if (clientAssemblyVersion != null && serverProductVersion != null)
+            {
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Upgrading from {0} to {1} and {2} to {3}", clientAssemblyVersion, serverAssemblyVersion, clientProductVersion, serverProductVersion);
+            }
+            else
+            {
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Upgrading to {0} and {1}", serverAssemblyVersion, serverProductVersion ?? new Version());
+            }
+
+            return true;
+        }
+
+        [NotNull]
+        private static string GetNewVersionFullPath([NotNull] string newVersionName)
+        {
+            if (newVersionName == null)
+                throw new ArgumentNullException("newVersionName");
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+
+            string newVersionPath;
+
+            try
+            {
+                var path = Path.Combine(Path.GetTempPath(), "Paya", "Pendar", "Editor", "Version_" + Utility.ReplaceInvalidPathChars(Assembly.GetExecutingAssembly().GetName().Name, '_'), Utility.ReplaceInvalidFileNameChars("PayaEditor_" + newVersionName + ".zip", '_'));
+                newVersionPath = Path.GetFullPath(path);
+
+                var fi = new FileInfo(newVersionPath);
+                if (fi.Exists && DateTime.Now - fi.LastWriteTime > TimeSpan.FromMinutes(30))
+                    return Path.GetTempFileName();
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while getting the update file name.");
+
+                return Path.GetTempFileName();
+            }
+
+            try
+            {
+                var newVersionDirectory = Path.GetDirectoryName(newVersionPath);
+                if (newVersionDirectory != null && !Directory.Exists(newVersionDirectory))
+                    Directory.CreateDirectory(newVersionDirectory);
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while creating directory of the update package.");
+            }
+
+            return newVersionPath;
+        }
+
+        [CanBeNull]
+        private static byte[] LoadCachedNewVersionPackage(string newVersionPath)
+        {
+            if (!File.Exists(newVersionPath))
+                return null;
+
+            byte[] package = null;
+
+            try
+            {
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Getting already downloaded package: {0}", newVersionPath);
+
+                package = File.ReadAllBytes(newVersionPath);
+
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Testing integrity of the previously downloaded update package.");
+
+                using (var ms = new MemoryStream(package, false))
+                {
+                    using (var zip = new ZipFile(ms))
+                    {
+                        if (!zip.TestArchive(true, TestStrategy.FindFirstError, (status, message) =>
+                        {
+                            if (status == null || message == null)
+                                return;
+
+                            if (_Logger.IsTraceEnabled)
+                                _Logger.Trace("Validating previously downloaded update package. BytesTested = {0}; ErrorCount = {1}", status.BytesTested, status.ErrorCount);
+
+                            if (status.ErrorCount == 0)
+                                return;
+
+                            if (_Logger.IsWarnEnabled)
+                                _Logger.Warn("Error while testing previously downloaded update package: {0}. Entry: {1}; ErrorCount = {2}; BytesTested = {3}", message, status.Entry, status.ErrorCount, status.BytesTested);
+                        }))
+                        {
+                            package = null;
+
+                            if (_Logger.IsWarnEnabled)
+                                _Logger.Warn("The previously downloaded update package is corrupt.");
+                        }
+                    }
+                }
+
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("The previously downloaded update package is correct.");
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while getting the cached update package.");
+            }
+
+            return package;
+        }
+
+        private static async Task RestartApplicationAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            Action a = () =>
+            {
+                Application.Current.Dispatcher.Invoke(new Action(async () =>
+                {
+                    if (
+                        _Logger.IsInfoEnabled)
+                        _Logger.Info("Restarting application....");
+
+                    await ((App)Application.Current).RestartAsync();
+                }), DispatcherPriority.Send);
+            };
+
+            if (cancellationTokenSource != null)
+                await TaskEx.Run(a, cancellationTokenSource.Token);
+            else
+                await TaskEx.Run(a);
+        }
+
+        private async Task<byte[]> DownloadUpdatePackageAsync([NotNull] string clientDirectory, [NotNull] string newVersionPath, CancellationTokenSource cancellationTokenSource)
+        {
+            if (clientDirectory == null)
+                throw new ArgumentNullException("clientDirectory");
+            if (newVersionPath == null)
+                throw new ArgumentNullException("newVersionPath");
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+            if (_Logger.IsInfoEnabled)
+                _Logger.Info("Getting list of application files");
+
+            string[] excludedExtensions = { @".pdb", @".log" };
+
+            var files = (from x in Directory.EnumerateFiles(clientDirectory, "*.*", SearchOption.TopDirectoryOnly)
+                         let ext = Path.GetExtension(x)?.ToLowerInvariant()
+                         where !excludedExtensions.Contains(ext)
+                         let info = UpdateFileInfo.TryCreate(x, clientDirectory)
+                         where info != null
+                         select info).ToArray();
+
+            if (_Logger.IsInfoEnabled)
+                _Logger.Info("Sending request to create update package.");
+
+            var package = await this.PostRequestAsync("Update/CreatePackage", new ExtendedFormUrlEncodedContent(new { files }), cancellationTokenSource) as byte[];
+
+            if (_Logger.IsInfoEnabled)
+                _Logger.Info("Update package downloaded. Length = {0}", package?.LongLength ?? 0);
+
+            if (package == null)
+                return null;
+
+            try
+            {
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("Saving update package");
+
+                File.WriteAllBytes(newVersionPath, package);
+
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("The update package saved.");
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while saving the update package.");
+            }
+
+            return package;
+        }
+
+        private async void DoWork(object cancellationTokenSource)
+        {
+            var random = new Random();
+
+            var cts = cancellationTokenSource as CancellationTokenSource ?? new CancellationTokenSource();
+
+            await TaskEx.Delay(random.Next(5000, 10000), cts.Token);
+
+            await this._ApplicationUpdater.DeleteOriginalFilesAsync();
+
+            if (!Properties.Settings.Default.EnableAutoUpdate)
+                return;
+
+            if (_Logger.IsInfoEnabled)
+                _Logger.Info("The update thread started.");
+
+            while (Thread.CurrentThread.IsAlive)
+            {
+                if (this.EnableAutoUpdate)
+                {
+
+
+                    try
+                    {
+                        if (_Logger.IsDebugEnabled)
+                            _Logger.Debug("Triggering update: {0}", Thread.CurrentThread.Name);
+                        await this.TriggerAsync(cts);
+                        if (_Logger.IsDebugEnabled)
+                            _Logger.Debug("Triggered update: {0}", Thread.CurrentThread.Name);
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        throw;
+                    }
+                    catch (Exception exp)
+                    {
+                        if (_Logger.IsErrorEnabled)
+                            _Logger.Error(exp, "Error while updating {0}", this.BaseUrl);
+                    }
+                }
+                else
+                {
+                    if (_Logger.IsDebugEnabled)
+                        _Logger.Debug("The auto update is disabled: {0}", Thread.CurrentThread.Name);
+                }
+
+#if DEBUG
+                const int randomInterval = 1000;
+#else
+                const int randomInterval = 10000;
+#endif
+
+                await TaskEx.Delay(this._Interval + TimeSpan.FromMilliseconds(random.Next(0, randomInterval)), cts.Token);
+            }
+        }
+
+        private async Task<bool> InstallPackageAsync(byte[] package, CancellationTokenSource cancellationTokenSource)
+        {
+            if (_Logger.IsDebugEnabled)
+                _Logger.Debug("Parsing update package.");
+
+            using (var ms = new MemoryStream(package, false))
+            {
+                using (var zip = new ZipFile(ms))
+                {
+                    if (_Logger.IsTraceEnabled)
+                        _Logger.Trace("Performing update...");
+
+                    bool anyFileChanged = await this._ApplicationUpdater.PerformUpdateAsync(zip, cancellationTokenSource);
+
+                    if (_Logger.IsTraceEnabled)
+                        _Logger.Trace("Performed update.");
+
+                    return anyFileChanged;
+                }
+            }
+        }
+
+        private async Task<bool> PerformUpdateIfNeededAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("Update checking");
+
+                this.State = PayaClientUpdaterStatus.GettingServerVersion;
+
+                var versionInfo = (JObject)await this.PostRequestAsync("Update/EditorVersion", cancellationTokenSource: cancellationTokenSource);
+
+                this.State = PayaClientUpdaterStatus.CheckingForUpdate;
+
+                string newVersionName;
+
+                bool shouldUpdate = this.CheckShouldUpdate(versionInfo, out newVersionName);
+
+                if (!shouldUpdate)
+                {
+                    return false;
+                }
+
+                if (_Logger.IsDebugEnabled)
+                    _Logger.Debug("Updating");
+
+                this.State = PayaClientUpdaterStatus.Updating;
+
+                string newVersionPath = GetNewVersionFullPath(newVersionName);
+
+                byte[] package = LoadCachedNewVersionPackage(newVersionPath) ?? await this.DownloadUpdatePackageAsync(this._baseProgramDirectory, newVersionPath, cancellationTokenSource);
+
+                this.State = PayaClientUpdaterStatus.Cleaning;
+
+                bool anyFileChanged = false;
+
+                if (package != null)
+                {
+                    anyFileChanged = await this.InstallPackageAsync(package, cancellationTokenSource);
+
+                    DeleteInstalledPackage(newVersionPath);
+                }
+
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Update done.");
+
+                return anyFileChanged;
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while getting the server version.");
+
+                return false;
+            }
+            finally
+            {
+                this.State = PayaClientUpdaterStatus.Idle;
+            }
+        }
+
+        private static void DeleteInstalledPackage([NotNull] string newVersionPath)
+        {
+            if (newVersionPath == null)
+                throw new ArgumentNullException("newVersionPath");
+            System.Diagnostics.Contracts.Contract.EndContractBlock();
+
+            try
+            {
+                if (File.Exists(newVersionPath))
+                    File.Delete(newVersionPath);
+            }
+            catch (Exception exp)
+            {
+                if (_Logger.IsWarnEnabled)
+                    _Logger.Warn(exp, "Error while deleting downloaded update package.");
+            }
+        }
+
+        private Task<object> PostRequestAsync(string url, HttpContent content = null, CancellationTokenSource cancellationTokenSource = null)
+        {
+            return Utility.PostRequestAndDownloadAsync(this.BaseUrl, url, content, cancellationTokenSource: cancellationTokenSource);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// The <see cref="State" /> property's name.
+        /// </summary>
+        public const string StatePropertyName = "State";
+
+        private PayaClientUpdaterStatus _State;
+
+        /// <summary>
+        /// Gets the <see cref="State" /> property.
+        /// <para>Changes to that property's value raise the PropertyChanged event.</para>
+        /// </summary>
+        public PayaClientUpdaterStatus State
+        {
+            get
+            {
+                return this._State;
+            }
+
+            private set
+            {
+                if (this._State == value)
+                {
+                    return;
+                }
+
+                this.RaisePropertyChanging();
+
+                this._State = value;
+
+                // Update bindings, no broadcast
+                this.RaisePropertyChanged();
+            }
+        }
+
+        /// <summary>Triggers the asynchronous.</summary>
+        /// <param name="cancellationTokenSource">The cancellation token.</param>
+        /// <returns></returns>
+        /// <autogeneratedoc />
+        public async Task TriggerAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            if (await this.PerformUpdateIfNeededAsync(cancellationTokenSource))
+            {
+                if (_Logger.IsInfoEnabled)
+                    _Logger.Info("Updated");
+
+                if (cancellationTokenSource != null)
+                    await TaskEx.Delay(250, cancellationTokenSource.Token);
+                else
+                    await TaskEx.Delay(250);
+
+                await RestartApplicationAsync(cancellationTokenSource);
+            }
+        }
+
+        /// <summary>
+            /// The <see cref="EnableAutoUpdate" /> property's name.
+            /// </summary>
+        public const string EnableAutoAupdatePropertyName = nameof(EnableAutoUpdate);
+
+        private bool _EnableAutoUpdate = false;
+
+        /// <summary>
+        /// Gets the <see cref="EnableAutoUpdate" /> property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public bool EnableAutoUpdate
+        {
+            get
+            {
+                return _EnableAutoUpdate;
+            }
+
+            set
+            {
+                if (_EnableAutoUpdate == value)
+                {
+                    return;
+                }
+
+                _EnableAutoUpdate = value;
+
+                // Update bindings, no broadcast
+                RaisePropertyChanged();
+            }
+        }
+    }
+
+    public enum PayaClientUpdaterStatus
+    {
+        Idle,
+        GettingServerVersion,
+        CheckingForUpdate,
+        Updating,
+        Cleaning
+    }
+}

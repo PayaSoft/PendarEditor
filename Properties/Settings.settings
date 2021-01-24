@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Paya.Automation.Editor.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ServiceHostMode" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Web</Value>
+    </Setting>
+    <Setting Name="UpdateCheckInterval" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">00:10:10</Value>
+    </Setting>
+    <Setting Name="TextBoxLoggerLayoutMaxNumberOfLinesToTriggerRemove" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1200</Value>
+    </Setting>
+    <Setting Name="TextBoxLoggerLayoutNumberOfLinesToRemove" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">300</Value>
+    </Setting>
+    <Setting Name="EnableUpdate" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="EnableAutoUpdate" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

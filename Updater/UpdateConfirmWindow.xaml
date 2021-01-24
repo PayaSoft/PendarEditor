@@ -1,0 +1,30 @@
+﻿<mah:MetroWindow x:Class="Paya.Automation.Editor.Updater.UpdateConfirmWindow"
+				 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+				 mc:Ignorable="d"
+				 Title="به روز رسانی" Height="300" Width="700"
+				 FlowDirection="RightToLeft"
+				 
+				 FontSize="15" Icon="/Paya.Automation.Editor;component/Resources/Favicon.ico"
+				 GlowBrush="{DynamicResource AccentColorBrush}"
+				 BorderBrush="{DynamicResource AccentColorBrush}"
+				 BorderThickness="1"
+				 IsMaxRestoreButtonEnabled="False"
+				 ShowMaxRestoreButton="False"
+				 x:Name="TheUpdateConfirmWindow"
+				 Loaded="TheUpdateConfirmWindow_Loaded"
+				 SaveWindowPosition="False"
+				 ResizeMode="CanMinimize"
+				 ToolTip="به روز رسانی"
+				 Padding="4"
+				 Margin="1"
+				 WindowStartupLocation="CenterScreen"
+				 WindowButtonCommandsOverlayBehavior="Flyouts" Topmost="True" HorizontalAlignment="Center" VerticalAlignment="Center" IsCloseButtonEnabled="False" ShowCloseButton="False" AllowsTransparency="True" WindowStyle="None">
+    <mah:MetroWindow.TaskbarItemInfo>
+        <TaskbarItemInfo Description="به روز رسانی" ProgressState="Indeterminate" />
+    </mah:MetroWindow.TaskbarItemInfo>
+    <Grid />
+</mah:MetroWindow>

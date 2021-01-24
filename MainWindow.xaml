@@ -1,0 +1,208 @@
+﻿<mah:MetroWindow xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+				 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				 xmlns:tb="clr-namespace:Hardcodet.Wpf.TaskbarNotification"
+				 x:Class="Paya.Automation.Editor.MainWindow"
+				 SizeToContent="Manual"
+				 mc:Ignorable="d"
+				 x:Name="TheMainWindow"
+				 Title="اتوماسیون اداری پایا"
+				 Height="506"
+				 Width="900"
+				 WindowState="Minimized"
+				 DataContext="{Binding ElementName=TheMainWindow}"
+				 Closing="TheMainWindow_Closing"
+				 IsVisibleChanged="TheMainWindow_IsVisibleChanged"
+				 Initialized="TheMainWindow_Initialized"
+				 Loaded="TheMainWindow_Loaded"
+				 FlowDirection="LeftToRight"
+
+				  GlowBrush="{DynamicResource HighlightBrush}"
+				 BorderBrush="{DynamicResource AccentColorBrush}"
+				 BorderThickness="1"
+				 Icon="Resources/Favicon.ico"
+				 IsMaxRestoreButtonEnabled="False"
+				 ShowMaxRestoreButton="False" WindowStyle="ToolWindow"
+				  IgnoreTaskbarOnMaximize="True">
+    <mah:MetroWindow.Resources>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Width"
+					Value="150" />
+            <Setter Property="Height"
+					Value="48" />
+            <Setter Property="Background"
+					Value="{x:Null}" />
+        </Style>
+    </mah:MetroWindow.Resources>
+    <mah:MetroWindow.TaskbarItemInfo>
+        <TaskbarItemInfo Description="ویرایشگر اتوماسیون اداری پایا (پندار)" />
+    </mah:MetroWindow.TaskbarItemInfo>
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <ComboBox x:Name="ThemesDropDownButton"
+					  Margin="0,4"
+					  SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+					  ItemsSource="{Binding Themes}" />
+            <ComboBox x:Name="AccentssDropDownButton"
+					  Margin="0,4"
+					  SelectedItem="{Binding SelectedAccent, Mode=TwoWay}"
+					  ItemsSource="{Binding Accents}" />
+            <ComboBox x:Name="DirectionsCombobox" SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"
+                      Margin="0,4">
+                <ComboBox.Items>
+                    <FlowDirection>RightToLeft</FlowDirection>
+                    <FlowDirection>LeftToRight</FlowDirection>
+                </ComboBox.Items>
+            </ComboBox>
+
+            <Button Content="‌نامه‌های باز" x:Name="OpenMessagesShowButton" Click="OpenMessagesShowButton_Click"
+                    Style="{DynamicResource AccentedSquareButtonStyle}" />
+
+
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+    <Grid x:Name="LayoutRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <tb:TaskbarIcon x:Name="TrayIcon"
+						IconSource="/Resources/Favicon.ico"
+						ToolTipText="سرویس اتوماسیون اداری پایا"
+						TrayMouseDoubleClick="TrayIcon_TrayMouseDoubleClick"
+						TrayLeftMouseDown="TrayIcon_TrayLeftMouseDown">
+            <!--<tb:TaskbarIcon.TrayPopup>
+				<Popup StaysOpen="False"
+					   FlowDirection="RightToLeft"
+					   AllowsTransparency="True">
+					<Border CornerRadius="8"
+							BorderThickness="2"
+							BorderBrush="Black"
+							Background="Black">
+						<StackPanel>
+							<Border Background="Black"
+									CornerRadius="8">
+								<TextBlock Foreground="White"
+										   HorizontalAlignment="Center"
+										   Margin="10"
+
+										   FontSize="12"
+										   FontWeight="Bold"
+										   Text="مدیریت چاپ پایا" />
+							</Border>
+							<TextBox x:Name="PopupLogsTextBox"
+									 Margin="0,0,0,6"
+									 VerticalScrollBarVisibility="Visible"
+									 TextWrapping="WrapWithOverflow"
+									 IsReadOnly="True"
+									 Width="300"
+									 Height="300"
+									 FontSize="9"
+
+									 Background="Black"
+									 Foreground="WhiteSmoke"
+									 MaxLines="150"
+									 mah:TextBoxHelper.IsMonitoring="True"
+									 mah:TextBoxHelper.Watermark="Log"
+									 mah:TextBoxHelper.IsWaitingForData="True"
+									 IsUndoEnabled="False" />
+						</StackPanel>
+					</Border>
+				</Popup>
+			</tb:TaskbarIcon.TrayPopup>-->
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="ShowWindowMenuItem"
+							  Header="نمایش پنجره"
+							  Click="ShowWindowMenuItem_Click" />
+                    <MenuItem x:Name="ShowOpenMessagesMenuItem"
+                              Header="نمایش نامه‌های باز"
+                              Click="ShowOpenMessagesMenuItem_Click" />
+                    <MenuItem x:Name="ShowAboutWindowMenuItem"
+							  Header="درباره"
+							  Click="ShowAboutWindowMenuItem_Click"/>
+                    <MenuItem x:Name="CheckForUpdateMenuItem"
+                              Header="به روز رسانی"
+                              Click="CheckForUpdateMenuItem_Click" />
+                    <MenuItem x:Name="ExitMenuItem"
+							  Header="خروج"
+							  Click="ExitMenuItem_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <TextBox x:Name="LogsTextBox"
+				 FlowDirection="{Binding SelectedDirection, Mode=TwoWay}"
+				 mah:TextBoxHelper.IsMonitoring="True"
+				 mah:TextBoxHelper.IsWaitingForData="True"
+				 Grid.Row="0"
+				 MaxLines="150"
+				 VerticalScrollBarVisibility="Visible"
+				 TextWrapping="WrapWithOverflow"
+				 IsReadOnly="True"
+				 IsUndoEnabled="False"
+				 ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text.Length, IsAsync=True, StringFormat=Length\=\{0\}B, FallbackValue={x:Null}, Mode=OneWay}" KeyUp="LogsTextBox_KeyUp" />
+
+        <StackPanel Orientation="Horizontal"
+					Grid.Row="1">
+
+            <Button x:Name="HideMenuButton"
+					Style="{DynamicResource AccentedSquareButtonStyle}"
+					MinWidth="180"
+					Click="HideMenuButton_Click"
+					HorizontalAlignment="Left"
+					Margin="8,4"
+					Focusable="False"
+					IsTabStop="False">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="24"
+						  Height="24"
+						  Stretch="Uniform"
+						  Fill="Gray"
+						  VerticalAlignment="Center"
+						  Data="F1 M 38,33.1538C 40.6765,33.1538 42.8462,35.3235 42.8462,38C 42.8462,40.6765 40.6765,42.8461 38,42.8461C 35.3235,42.8461 33.1539,40.6765 33.1539,38C 33.1539,35.3235 35.3236,33.1538 38,33.1538 Z M 38,25.0769C 49.3077,25.0769 59,33.1539 59,38C 59,42.8461 49.3077,50.9231 38,50.9231C 26.6923,50.9231 17,42.8461 17,38C 17,33.1539 26.6923,25.0769 38,25.0769 Z M 38,29.1154C 33.0932,29.1154 29.1154,33.0932 29.1154,38C 29.1154,42.9068 33.0931,46.8846 38,46.8846C 42.9068,46.8846 46.8846,42.9068 46.8846,38C 46.8846,33.0932 42.9068,29.1154 38,29.1154 Z M 24.2466,48.925C 25.4702,49.5784 26.7791,50.1694 28.1555,50.6729L 14.7057,64.1228C 13.7101,63.2344 12.7656,62.2899 11.8772,61.2943L 24.2466,48.925 Z M 51.7534,27.0751C 50.5298,26.4216 49.2209,25.8307 47.8445,25.3271L 61.2943,11.8773C 62.2899,12.7657 63.2343,13.7101 64.1227,14.7057L 51.7534,27.0751 Z" />
+                    <TextBlock Text="مخفی‌کردن"
+							   VerticalAlignment="Center"
+							   Margin="5" />
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="ExitMenuButton"
+					MinWidth="180"
+					Style="{DynamicResource AccentedSquareButtonStyle}"
+					Click="ExitMenuButton_Click"
+					HorizontalAlignment="Left"
+					Margin="8,4"
+					Focusable="False"
+					IsTabStop="False">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="24"
+						  Height="24"
+						  Stretch="Uniform"
+						  Fill="DarkRed"
+						  VerticalAlignment="Center"
+						  Data="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z" />
+                    <TextBlock Text="خروج"
+							   VerticalAlignment="Center"
+							   Margin="5" />
+                </StackPanel>
+
+            </Button>
+
+            <CheckBox x:Name="Test_CheckBox_Visible" Content="سربرگ" FontFamily="tahoma" FontSize="12" Margin="0,0,0,5"
+						  Click="Test_CheckBox_Visible_Click" Tag="1"
+						  Style="{DynamicResource MetroCheckBox}"
+                      Visibility="Hidden"/>
+
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                <TextBlock VerticalAlignment="Center">به روز رسانی خودکار:</TextBlock>
+                <mah:ToggleSwitchButton IsChecked="{Binding ElementName=TheMainWindow, Path=EnableAutoUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="به روز رسانی خودکار" VerticalAlignment="Center" />
+            </StackPanel>
+
+        </StackPanel>
+
+    </Grid>
+</mah:MetroWindow>
