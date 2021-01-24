@@ -20,13 +20,13 @@
         [WebInvoke(UriTemplate = "/OpenBody", Method = "*", BodyStyle = WebMessageBodyStyle.Wrapped,
             RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        void OpenBody(string baseUrl, int storeIndex, string folderId, int messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string cipher, Dictionary<string, string> encryptedCookies);
+        void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string cipher, Dictionary<string, string> encryptedCookies);
 
         [OperationContract(Name = "Print")]
         [WebInvoke(UriTemplate = "/Print", Method = "*", BodyStyle = WebMessageBodyStyle.Wrapped,
             RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        void Print(string baseUrl, int storeIndex, string folderId, int messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string cipher, Dictionary<string, string> encryptedCookies);
+        void Print(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string cipher, Dictionary<string, string> encryptedCookies);
 
         #endregion
     }

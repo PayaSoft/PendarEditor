@@ -110,7 +110,7 @@
         }
 
 
-       public void OpenBody(string baseUrl, int storeIndex, string folderId, int messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string cipher, Dictionary<string, string> encryptedCookies)
+       public void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string cipher, Dictionary<string, string> encryptedCookies)
         {
             if (IsOptions)
             {
@@ -178,7 +178,7 @@
 
                 var cancelationToken = new CancellationTokenSource();
 
-                var sessionData = new MessageSessionData(baseUrl, storeIndex, folderId, messageId, messageSerial, cookies);
+                var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, cookies);
 
 
                 var m = new WordEditing.WordEditorManager(sessionData) { InsertHeader = insertHeader, InsertSigns = insertSigns, InsertSignImage = insertSignImage, InsertCopyText = insertCopyText, InsertRemarks = insertRemarks };
@@ -221,7 +221,7 @@
             }
         }
 
-        public void Print(string baseUrl, int storeIndex, string folderId, int messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string cipher, Dictionary<string, string> encryptedCookies)
+        public void Print(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string cipher, Dictionary<string, string> encryptedCookies)
         {
             if (IsOptions)
             {
@@ -249,7 +249,7 @@
 
             var cancelationToken = new CancellationTokenSource();
 
-            var sessionData = new MessageSessionData(baseUrl, storeIndex, folderId, messageId, messageSerial, cookies);
+            var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, cookies);
 
             var m = new WordEditing.WordEditorManager(sessionData) { InsertHeader = insertHeader, InsertSigns = insertSigns, InsertSignImage = insertSignImage, InsertCopyText = insertCopyText, InsertRemarks = insertRemarks };
 
@@ -276,7 +276,6 @@
                 var pdata = new Dictionary<string, string>();
 
                 pdata["storeIndex"] = Convert.ToString(sessionData.StoreIndex);
-                pdata["folderId"] = sessionData.FolderId ?? string.Empty;
                 pdata["messageId"] = Convert.ToString(sessionData.MessageId);
 
                 var json = await Utility.HttpPostRequestAsync<JObject>(sessionData.BaseUrl, @"/Crm/Table_AUT_PrintLog/InsertPrintLog", new FormUrlEncodedContent(pdata), sessionData.Cookies, cancelationToken);

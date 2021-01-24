@@ -20,8 +20,7 @@ namespace Paya.Automation.Editor.Models
         #region Fields
 
         private readonly string _baseUrl;
-        private readonly string _folderId;
-        private readonly int _messageId;
+        private readonly string _messageId;
         private readonly int _messageSerial;
         private readonly int _storeIndex;
 
@@ -34,15 +33,13 @@ namespace Paya.Automation.Editor.Models
         /// </summary>
         /// <param name="baseUrl">The base URL.</param>
         /// <param name="storeIndex">Index of the store.</param>
-        /// <param name="folderId">The folder identifier.</param>
         /// <param name="messageId">The message identifier.</param>
         /// <param name="messageSerial">The message serial.</param>
         /// <param name="cookies">The cookies.</param>
-        public MessageSessionData(string baseUrl, int storeIndex, string folderId, int messageId, int messageSerial, IDictionary<string, string> cookies)
+        public MessageSessionData(string baseUrl, int storeIndex, string messageId, int messageSerial, IDictionary<string, string> cookies)
         {
             this._baseUrl = Utility.NormalizeUrl(baseUrl);
             this._messageId = messageId;
-            this._folderId = folderId;
             this._storeIndex = storeIndex;
             this._messageSerial = messageSerial;
             this.Cookies = cookies;
@@ -61,12 +58,7 @@ namespace Paya.Automation.Editor.Models
             get { return this._baseUrl; }
         }
 
-        public string FolderId
-        {
-            get { return this._folderId; }
-        }
-
-        public int MessageId
+        public string MessageId
         {
             get { return this._messageId; }
         }

@@ -102,7 +102,6 @@ namespace Paya.Automation.Editor.Models
             var pdata = new Dictionary<string, string>();
 
             pdata["storeIndex"] = Convert.ToString(context.StoreIndex);
-            pdata["folderId"] = Convert.ToString(context.FolderId);
             pdata["messageId"] = Convert.ToString(context.MessageId);
 
             var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Details", new FormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
@@ -121,7 +120,6 @@ namespace Paya.Automation.Editor.Models
             var pdata = new Dictionary<string, string>();
 
             pdata["storeIndex"] = Convert.ToString(context.StoreIndex);
-            pdata["folderId"] = Convert.ToString(context.FolderId);
             pdata["messageId"] = Convert.ToString(context.MessageId);
 
             var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Info", new FormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
@@ -139,7 +137,7 @@ namespace Paya.Automation.Editor.Models
 
             var uri = new UriBuilder(new Uri(context.BaseUrl));
             uri.Path = @"Message/Content";
-            uri.Query = string.Format(@"storeIndex={0}&folderId={1}&messageId={2}&insertHeader={3}&insertSigns={4}&insertSignImage={7}&insertCopyText={5}&insertRemarks={6}", context.StoreIndex, context.FolderId, context.MessageId, insertHeader, insertSigns, insertCopyText, insertRemarks, insertSignImage);
+            uri.Query = string.Format(@"storeIndex={0}&messageId={1}&insertHeader={2}&insertSigns={3}&insertSignImage={6}&insertCopyText={4}&insertRemarks={5}", context.StoreIndex, context.MessageId, insertHeader, insertSigns, insertCopyText, insertRemarks, insertSignImage);
 
             var data = await Utility.HttpGetResponseAsync(uri.Uri, context.Cookies, cancellationTokenSource);
 
@@ -154,7 +152,6 @@ namespace Paya.Automation.Editor.Models
 
             var pdata = new Dictionary<string, string>();
             pdata[@"storeIndex"] = Convert.ToString(context.StoreIndex);
-            pdata[@"folderId"] = Convert.ToString(context.FolderId);
             pdata[@"messageId"] = Convert.ToString(context.MessageId);
             pdata[@"format"] = Convert.ToString(ExportFormat.Jpeg);
             pdata[@"xamlBody"] = ExtendedFormUrlEncodedContent.EscapeDataString(xamlBody);
@@ -222,7 +219,6 @@ namespace Paya.Automation.Editor.Models
             var pdata = new Dictionary<string, string>();
 
             pdata[@"storeIndex"] = Convert.ToString(context.StoreIndex);
-            pdata[@"folderId"] = Convert.ToString(context.FolderId);
             pdata[@"messageId"] = Convert.ToString(context.MessageId);
             pdata[@"body"] = ExtendedFormUrlEncodedContent.EscapeDataString(body);
             pdata[@"xamlbody"] = ExtendedFormUrlEncodedContent.EscapeDataString(xamlBody);
@@ -260,7 +256,6 @@ namespace Paya.Automation.Editor.Models
             var pdata = new Dictionary<string, string>();
 
             pdata[@"storeIndex"] = Convert.ToString(context.StoreIndex, CultureInfo.InvariantCulture);
-            pdata[@"folderId"] = Convert.ToString(context.FolderId, CultureInfo.InvariantCulture);
             pdata[@"messageId"] = Convert.ToString(context.MessageId, CultureInfo.InvariantCulture);
 
             if (!string.IsNullOrWhiteSpace(copyText))
@@ -305,7 +300,6 @@ namespace Paya.Automation.Editor.Models
             var pdata = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("storeIndex", Convert.ToString(context.StoreIndex)),
-                new KeyValuePair<string, string>("folderId", Convert.ToString(context.FolderId)),
                 new KeyValuePair<string, string>("messageId", Convert.ToString(context.MessageId)),
                 new KeyValuePair<string, string>("xamlBody", Convert.ToString(xamlBodyBase64String)),
                 new KeyValuePair<string, string>("SendLetter", Convert.ToString(sendBody))
