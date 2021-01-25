@@ -274,24 +274,28 @@ namespace Paya.Automation.Editor
             return obj == null ? Enumerable.Empty<KeyValuePair<string, string>>() : GetUrlEncodedData(string.Empty, obj, CultureInfo.InvariantCulture);
         }
 
-        internal static async Task<object> PostRequestAndDownloadAsync([NotNull] string baseUrl, string url, [CanBeNull] HttpContent content = null, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies = null, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        internal static async Task<object> PostRequestAndDownloadAsync([NotNull] string baseUrl, string url, [CanBeNull] HttpContent content = null, [CanBeNull] string token = null, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting POST {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
+            //var cookieContainer = new CookieContainer();
+            //if (cookies != null)
+            //{
+            //    foreach (var cookie in cookies)
+            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
+            //}
 
             //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
             {
                 //using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await (cancellationTokenSource != null ? w.PostAsync(url, content, cancellationTokenSource.Token) : w.PostAsync(url, content)))
@@ -332,23 +336,28 @@ namespace Paya.Automation.Editor
             }
         }
 
-        internal static async Task<byte[]> HttpGetResponseAsync([NotNull] Uri uri, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        internal static async Task<byte[]> HttpGetResponseAsync([NotNull] Uri uri, [CanBeNull] string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting GET {0}", uri);
 
             var baseUri = new Uri(uri.GetComponents(UriComponents.HostAndPort | UriComponents.SchemeAndServer | UriComponents.UserInfo, UriFormat.SafeUnescaped), UriKind.Absolute);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseUri, new Cookie(cookie.Key, cookie.Value));
-            }
+            //var cookieContainer = new CookieContainer();
+            //if (cookies != null)
+            //{
+            //    foreach (var cookie in cookies)
+            //        cookieContainer.Add(baseUri, new Cookie(cookie.Key, cookie.Value));
+            //}
 
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseUri })
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await (cancellationTokenSource != null ? w.GetAsync(uri, cancellationTokenSource.Token) : w.GetAsync(uri)))
@@ -364,23 +373,28 @@ namespace Paya.Automation.Editor
             }
         }
 
-        internal static async Task<byte[]> HttpGetResponseAsync([NotNull] string baseUrl, string url, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies)
+        internal static async Task<byte[]> HttpGetResponseAsync([NotNull] string baseUrl, string url, [CanBeNull] string token)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting GET {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
+            //var cookieContainer = new CookieContainer();
+            //if (cookies != null)
+            //{
+            //    foreach (var cookie in cookies)
+            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
+            //}
 
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await w.GetAsync(url))
@@ -396,23 +410,28 @@ namespace Paya.Automation.Editor
             }
         }
 
-        internal static async Task<T> HttpGetResponseAsync<T>([NotNull] string baseUrl, string url, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies)
+        internal static async Task<T> HttpGetResponseAsync<T>([NotNull] string baseUrl, string url, [CanBeNull] string token)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting GET {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
+            //var cookieContainer = new CookieContainer();
+            //if (cookies != null)
+            //{
+            //    foreach (var cookie in cookies)
+            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
+            //}
 
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await w.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
@@ -461,28 +480,26 @@ namespace Paya.Automation.Editor
             }
         }
 
-        internal static async Task<JToken> HttpPostRequestAsync(string baseUrl, string url, HttpContent content, IEnumerable<KeyValuePair<string, string>> cookies, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        internal static async Task<JToken> HttpPostRequestAsync(string baseUrl, string url, HttpContent content, string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
-            return await HttpPostRequestAsync<JToken>(baseUrl, url, content, cookies, cancellationTokenSource);
+            return await HttpPostRequestAsync<JToken>(baseUrl, url, content, token, cancellationTokenSource);
         }
 
-        internal static async Task<T> HttpPostRequestAsync<T>([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        internal static async Task<T> HttpPostRequestAsync<T>([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting POST {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
 
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await (cancellationTokenSource != null ? w.PostAsync(url, content, cancellationTokenSource.Token) : w.PostAsync(url, content)))
@@ -502,23 +519,28 @@ namespace Paya.Automation.Editor
             }
         }
 
-        internal static async Task<byte[]> HttpPostRequestBinaryAsync([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] IEnumerable<KeyValuePair<string, string>> cookies, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        internal static async Task<byte[]> HttpPostRequestBinaryAsync([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting POST {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
-            {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
+            //var cookieContainer = new CookieContainer();
+            //if (cookies != null)
+            //{
+            //    foreach (var cookie in cookies)
+            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
+            //}
 
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
+            using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
                     using (var result = await (cancellationTokenSource != null ? w.PostAsync(url, content, cancellationTokenSource.Token) : w.PostAsync(url, content)))

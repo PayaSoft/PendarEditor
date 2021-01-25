@@ -104,7 +104,7 @@ namespace Paya.Automation.Editor.Models
             pdata["storeIndex"] = Convert.ToString(context.StoreIndex);
             pdata["messageId"] = Convert.ToString(context.MessageId);
 
-            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Details", new FormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
+            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Details", new FormUrlEncodedContent(pdata), context.Token, cancellationTokenSource);
 
             context.MessageData = Utility.GetStandardResponseResult(data) as JObject;
 
@@ -122,7 +122,7 @@ namespace Paya.Automation.Editor.Models
             pdata["storeIndex"] = Convert.ToString(context.StoreIndex);
             pdata["messageId"] = Convert.ToString(context.MessageId);
 
-            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Info", new FormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
+            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/Info", new FormUrlEncodedContent(pdata), context.Token, cancellationTokenSource);
 
             context.MessageData = Utility.GetStandardResponseResult(data) as JObject;
 
@@ -139,7 +139,7 @@ namespace Paya.Automation.Editor.Models
             uri.Path = @"Message/Content";
             uri.Query = string.Format(@"storeIndex={0}&messageId={1}&insertHeader={2}&insertSigns={3}&insertSignImage={6}&insertCopyText={4}&insertRemarks={5}", context.StoreIndex, context.MessageId, insertHeader, insertSigns, insertCopyText, insertRemarks, insertSignImage);
 
-            var data = await Utility.HttpGetResponseAsync(uri.Uri, context.Cookies, cancellationTokenSource);
+            var data = await Utility.HttpGetResponseAsync(uri.Uri, context.Token, cancellationTokenSource);
 
             return data;
         }
@@ -155,7 +155,7 @@ namespace Paya.Automation.Editor.Models
             pdata[@"messageId"] = Convert.ToString(context.MessageId);
             pdata[@"format"] = Convert.ToString(ExportFormat.Jpeg);
             pdata[@"xamlBody"] = ExtendedFormUrlEncodedContent.EscapeDataString(xamlBody);
-            var data = await Utility.HttpPostRequestBinaryAsync(context.BaseUrl, @"/Message/Export", new ExtendedFormUrlEncodedContent(pdata), context.Cookies);
+            var data = await Utility.HttpPostRequestBinaryAsync(context.BaseUrl, @"/Message/Export", new ExtendedFormUrlEncodedContent(pdata), context.Token);
 
             return data;
         }
@@ -170,7 +170,7 @@ namespace Paya.Automation.Editor.Models
 
             pdata[@"storeIndex"] = Convert.ToString(context.StoreIndex);
 
-            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, @"/Account/CurrentUser", new FormUrlEncodedContent(pdata), context.Cookies);
+            var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, @"/Account/CurrentUser", new FormUrlEncodedContent(pdata), context.Token);
 
             var obj = Utility.GetStandardResponseResult(data) as JObject;
 
@@ -193,7 +193,7 @@ namespace Paya.Automation.Editor.Models
                 throw new ArgumentNullException("context");
             System.Diagnostics.Contracts.Contract.EndContractBlock();
 
-            var response = await Utility.HttpPostRequestAsync<JToken>(context.BaseUrl, url, content, context.Cookies, cancellationTokenSource);
+            var response = await Utility.HttpPostRequestAsync<JToken>(context.BaseUrl, url, content, context.Token, cancellationTokenSource);
 
             if (response == null)
                 return null;
@@ -228,7 +228,7 @@ namespace Paya.Automation.Editor.Models
 
             try
             {
-                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/SaveBody", new ExtendedFormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
+                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Message/SaveBody", new ExtendedFormUrlEncodedContent(pdata), context.Token, cancellationTokenSource);
 
                 if (data == null || data["Status"] == null)
                     return new ActionResult(false, null);
@@ -272,7 +272,7 @@ namespace Paya.Automation.Editor.Models
 
             try
             {
-                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, @"/Message/SetBody", new ExtendedFormUrlEncodedContent(pdata), context.Cookies, cancellationTokenSource);
+                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, @"/Message/SetBody", new ExtendedFormUrlEncodedContent(pdata), context.Token, cancellationTokenSource);
 
                 if (data == null || data["Status"] == null)
                     return new ActionResult(false, null);
@@ -319,7 +319,7 @@ namespace Paya.Automation.Editor.Models
                 pdata.AddRange(Utility.GetUrlEncodedData(new { ece }));
             }
 
-            var result = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Email/Send", new ExtendedFormUrlEncodedContent(pdata), context.Cookies);
+            var result = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/Email/Send", new ExtendedFormUrlEncodedContent(pdata), context.Token);
 
             if (result == null || result["Status"] == null)
                 throw new InvalidOperationException("Invalid response");
@@ -346,7 +346,7 @@ namespace Paya.Automation.Editor.Models
 
             try
             {
-                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/User/Roles", new FormUrlEncodedContent(pdata), context.Cookies);
+                var data = await Utility.HttpPostRequestAsync<JObject>(context.BaseUrl, "/User/Roles", new FormUrlEncodedContent(pdata), context.Token);
 
                 if (data != null && data["Status"] != null)
                 {

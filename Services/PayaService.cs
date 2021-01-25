@@ -109,8 +109,14 @@
                 _Logger.Debug("Ping");
         }
 
+        public void OpenBodyOptions()
+        {
+        }
+        public void PrintOptions()
+        {
+        }
 
-       public void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string cipher, Dictionary<string, string> encryptedCookies)
+        public void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string token)
         {
             if (IsOptions)
             {
@@ -143,17 +149,17 @@
                 if (_Logger.IsDebugEnabled)
                     _Logger.Debug("Begin OpenBody");
 
-                var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                if (encryptedCookies != null)
-                {
-                    foreach (var item in encryptedCookies)
-                        cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
-                }
+                //var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                //if (encryptedCookies != null)
+                //{
+                //    foreach (var item in encryptedCookies)
+                //        cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
+                //}
 
                 if (baseUrl != null)
                 {
                     var u = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
-                    Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
+                    //Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
 
                     if (_Logger.IsTraceEnabled)
                         _Logger.Trace("Cookies set");
@@ -178,7 +184,7 @@
 
                 var cancelationToken = new CancellationTokenSource();
 
-                var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, cookies);
+                var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, token);
 
 
                 var m = new WordEditing.WordEditorManager(sessionData) { InsertHeader = insertHeader, InsertSigns = insertSigns, InsertSignImage = insertSignImage, InsertCopyText = insertCopyText, InsertRemarks = insertRemarks };
@@ -221,7 +227,7 @@
             }
         }
 
-        public void Print(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string cipher, Dictionary<string, string> encryptedCookies)
+        public void Print(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, bool withPreview, string token)
         {
             if (IsOptions)
             {
@@ -231,17 +237,17 @@
             if (_Logger.IsDebugEnabled)
                 _Logger.Debug("Begin Print");
 
-            var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (encryptedCookies != null)
-            {
-                foreach (var item in encryptedCookies)
-                    cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
-            }
+            //var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            //if (encryptedCookies != null)
+            //{
+            //    foreach (var item in encryptedCookies)
+            //        cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
+            //}
 
             if (baseUrl != null)
             {
                 var u = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
-                Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
+                //Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
             }
 
             if (_Logger.IsTraceEnabled)
@@ -249,7 +255,7 @@
 
             var cancelationToken = new CancellationTokenSource();
 
-            var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, cookies);
+            var sessionData = new MessageSessionData(baseUrl, storeIndex, messageId, messageSerial, token);
 
             var m = new WordEditing.WordEditorManager(sessionData) { InsertHeader = insertHeader, InsertSigns = insertSigns, InsertSignImage = insertSignImage, InsertCopyText = insertCopyText, InsertRemarks = insertRemarks };
 
@@ -278,7 +284,7 @@
                 pdata["storeIndex"] = Convert.ToString(sessionData.StoreIndex);
                 pdata["messageId"] = Convert.ToString(sessionData.MessageId);
 
-                var json = await Utility.HttpPostRequestAsync<JObject>(sessionData.BaseUrl, @"/Crm/Table_AUT_PrintLog/InsertPrintLog", new FormUrlEncodedContent(pdata), sessionData.Cookies, cancelationToken);
+                var json = await Utility.HttpPostRequestAsync<JObject>(sessionData.BaseUrl, @"/Crm/Table_AUT_PrintLog/InsertPrintLog", new FormUrlEncodedContent(pdata), sessionData.Token, cancelationToken);
                 if (json != null && json["Status"] != null && !json["Status"]["Succeed"].Value<bool>())
                 {
                     if (_Logger.IsErrorEnabled)
@@ -291,6 +297,8 @@
                     _Logger.Error(exp, "Error while logging the print operation");
             }
         }
+
+
 
         #endregion
 

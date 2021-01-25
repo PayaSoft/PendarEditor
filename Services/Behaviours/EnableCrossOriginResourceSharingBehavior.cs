@@ -37,7 +37,7 @@ namespace Paya.Automation.Editor.Services.Behaviours
 
 			requiredHeaders["Access-Control-Allow-Origin"] = "*";
 			requiredHeaders["Access-Control-Request-Method"] = "POST,GET,PUT,DELETE,OPTIONS";
-            requiredHeaders["Access-Control-Allow-Headers"] = "X-Requested-With,Content-Type,X-ConnectionId,X-Date,User-Agent,Referer,Origin";
+            requiredHeaders["Access-Control-Allow-Headers"] = "X-Requested-With,Content-Type,X-ConnectionId,X-Date,User-Agent,Referer,Origin,Accept,Authorization";
 
             endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new EnableCrossOriginResourceSharingMessageInspector(requiredHeaders));
 		}

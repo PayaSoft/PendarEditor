@@ -35,14 +35,14 @@ namespace Paya.Automation.Editor.Models
         /// <param name="storeIndex">Index of the store.</param>
         /// <param name="messageId">The message identifier.</param>
         /// <param name="messageSerial">The message serial.</param>
-        /// <param name="cookies">The cookies.</param>
-        public MessageSessionData(string baseUrl, int storeIndex, string messageId, int messageSerial, IDictionary<string, string> cookies)
+        /// <param name="token">The Authentication Token.</param>
+        public MessageSessionData(string baseUrl, int storeIndex, string messageId, int messageSerial, string token)
         {
             this._baseUrl = Utility.NormalizeUrl(baseUrl);
             this._messageId = messageId;
             this._storeIndex = storeIndex;
             this._messageSerial = messageSerial;
-            this.Cookies = cookies;
+            this.Token = token;
         }
 
         #endregion
@@ -79,7 +79,7 @@ namespace Paya.Automation.Editor.Models
 
         #region Properties
 
-        internal IDictionary<string, string> Cookies { get; set; }
+        internal string Token { get; set; }
 
         internal JObject MessageData { get; set; }
 
