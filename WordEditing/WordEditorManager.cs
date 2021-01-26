@@ -251,9 +251,9 @@
                 if (messageInfo == null)
                     return;
 
-                var hasPrintPermission = messageInfo.GetJsonValue<bool>("access.canPrint");
-                if (!hasPrintPermission)
-                    throw new SecurityException("Print permission denied");
+                //var hasPrintPermission = messageInfo.GetJsonValue<bool>("access.canPrint");
+                //if (!hasPrintPermission)
+                //    throw new SecurityException("Print permission denied");
 
                 bool insertHeader;
                 if (this.InsertHeader)

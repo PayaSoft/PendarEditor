@@ -212,21 +212,10 @@
             if (_Logger.IsDebugEnabled)
                 _Logger.Debug("Begin Print");
 
-            //var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            //if (encryptedCookies != null)
-            //{
-            //    foreach (var item in encryptedCookies)
-            //        cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
-            //}
-
             if (baseUrl != null)
             {
                 var u = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
-                //Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
             }
-
-            if (_Logger.IsTraceEnabled)
-                _Logger.Trace("Cookies set");
 
             var cancelationToken = new CancellationTokenSource();
 

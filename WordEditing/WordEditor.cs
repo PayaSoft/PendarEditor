@@ -155,16 +155,6 @@
                         doc.Settings.ExceptionMessageBehavior = ExceptionMessageHandling.CopyInnerExceptionMessageToTopLevelException;
                         doc.Settings.EnableSafeMode = Internal.IsDebug;
 
-                        //try
-                        //{
-                        //    doc.Final = true;
-                        //}
-                        //catch (COMException exp)
-                        //{
-                        //    if (_Logger.IsWarnEnabled)
-                        //        _Logger.Warn(exp, "Error while finalizing the document");
-                        //}
-
                         try
                         {
                             doc.Protect(WdProtectionType.wdAllowOnlyFormFields, true, password: Guid.NewGuid().ToString("N"));

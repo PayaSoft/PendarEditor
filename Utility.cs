@@ -252,22 +252,6 @@ namespace Paya.Automation.Editor
             if (!(response is JObject))
                 throw new InvalidOperationException("Invalid response. Expected object and got array.");
 
-            //var status = response["Status"] as JObject;
-            //if (status == null)
-            //    throw new InvalidOperationException("Invalid response. No Status defined.");
-
-            //if (!status["Succeed"].Value<bool>())
-            //{
-            //    if (status["IsLoggedIn"].Value<bool?>() == false)
-            //    {
-            //        throw new SecurityException(Resources.NotAuthenticatedErrorMessage);
-            //    }
-
-            //    throw new InvalidOperationException(status["Message"].Value<string>() ?? "خطا");
-            //}
-
-            //return response["Data"];
-
             return response;
         }
 
