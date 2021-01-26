@@ -149,37 +149,12 @@
                 if (_Logger.IsDebugEnabled)
                     _Logger.Debug("Begin OpenBody");
 
-                //var cookies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                //if (encryptedCookies != null)
-                //{
-                //    foreach (var item in encryptedCookies)
-                //        cookies[item.Key] = Crypto.DecryptAndVerify(item.Value, cipher, false);
-                //}
-
                 if (baseUrl != null)
                 {
                     var u = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
-                    //Application.SetCookie(u, cookies.Aggregate(new StringBuilder(), (sb, c) => (sb.Length > 0 ? sb.Append(';') : sb).Append(c.Key).Append('=').Append(c.Value), sb => sb.ToString()));
 
                     if (_Logger.IsTraceEnabled)
                         _Logger.Trace("Cookies set");
-
-                    //try
-                    //{
-                    //    if (_Logger.IsDebugEnabled)
-                    //    {
-                    //        _Logger.Debug("Initializing the updater.");
-                    //    }
-
-                    //    App.ClientUpdaterFactory.CreateUpdater(baseUrl);
-                    //}
-                    //catch (Exception exp)
-                    //{
-                    //    if (_Logger.IsWarnEnabled)
-                    //    {
-                    //        _Logger.Warn(exp, "Error while setting updater parameters.");
-                    //    }
-                    //}
                 }
 
                 var cancelationToken = new CancellationTokenSource();

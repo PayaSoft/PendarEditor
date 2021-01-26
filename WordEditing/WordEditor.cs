@@ -149,10 +149,10 @@
                     using (var doc = app.Documents.Open(this._FileName, true, false, false))
                     {
                         doc.Settings.EnableAutomaticQuit = true;
-                        doc.Settings.EnableDebugOutput = Internal.IsDebug;
+                        doc.Settings.EnableMoreDebugOutput = Internal.IsDebug;
                         doc.Settings.EnableEventDebugOutput = Internal.IsDebug;
                         doc.Settings.EnableEvents = true;
-                        doc.Settings.UseExceptionMessage = ExceptionMessageHandling.CopyInnerExceptionMessageToTopLevelException;
+                        doc.Settings.ExceptionMessageBehavior = ExceptionMessageHandling.CopyInnerExceptionMessageToTopLevelException;
                         doc.Settings.EnableSafeMode = Internal.IsDebug;
 
                         //try
@@ -336,10 +336,10 @@
                             try
                             {
                                 doc.Settings.EnableAutomaticQuit = true;
-                                doc.Settings.EnableDebugOutput = Internal.IsDebug;
+                                doc.Settings.EnableMoreDebugOutput = Internal.IsDebug;
                                 doc.Settings.EnableEventDebugOutput = Internal.IsDebug;
                                 doc.Settings.EnableEvents = true;
-                                doc.Settings.UseExceptionMessage = ExceptionMessageHandling.CopyInnerExceptionMessageToTopLevelException;
+                                doc.Settings.ExceptionMessageBehavior = ExceptionMessageHandling.CopyInnerExceptionMessageToTopLevelException;
                                 doc.Settings.EnableSafeMode = Internal.IsDebug;
 
                                 if (_Logger.IsDebugEnabled)
@@ -395,7 +395,7 @@
                                     _Logger.Trace("The Word application activated");
                             }
 
-                            if (this.CanChange)
+                            //if (this.CanChange)
                             {
                                 this.IsWaitingForFinish = true;
 
@@ -416,20 +416,20 @@
 
                                 this.IsWaitingForFinish = false;
                             }
-                            else
-                            {
-                                try
-                                {
-                                    app.DisplayAlerts = WdAlertLevel.wdAlertsNone;
-                                }
-                                catch (Exception exp)
-                                {
-                                    if (_Logger.IsWarnEnabled)
-                                        _Logger.Warn(exp, "Error preventing alerts to display");
-                                }
+                            //else
+                            //{
+                            //    try
+                            //    {
+                            //        app.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+                            //    }
+                            //    catch (Exception exp)
+                            //    {
+                            //        if (_Logger.IsWarnEnabled)
+                            //            _Logger.Warn(exp, "Error preventing alerts to display");
+                            //    }
 
-                                this.IsSaved = false;
-                            }
+                            //    this.IsSaved = false;
+                            //}
                         }
                     }
                     finally

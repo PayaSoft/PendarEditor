@@ -252,21 +252,23 @@ namespace Paya.Automation.Editor
             if (!(response is JObject))
                 throw new InvalidOperationException("Invalid response. Expected object and got array.");
 
-            var status = response["Status"] as JObject;
-            if (status == null)
-                throw new InvalidOperationException("Invalid response. No Status defined.");
+            //var status = response["Status"] as JObject;
+            //if (status == null)
+            //    throw new InvalidOperationException("Invalid response. No Status defined.");
 
-            if (!status["Succeed"].Value<bool>())
-            {
-                if (status["IsLoggedIn"].Value<bool?>() == false)
-                {
-                    throw new SecurityException(Resources.NotAuthenticatedErrorMessage);
-                }
+            //if (!status["Succeed"].Value<bool>())
+            //{
+            //    if (status["IsLoggedIn"].Value<bool?>() == false)
+            //    {
+            //        throw new SecurityException(Resources.NotAuthenticatedErrorMessage);
+            //    }
 
-                throw new InvalidOperationException(status["Message"].Value<string>() ?? "خطا");
-            }
+            //    throw new InvalidOperationException(status["Message"].Value<string>() ?? "خطا");
+            //}
 
-            return response["Data"];
+            //return response["Data"];
+
+            return response;
         }
 
         internal static IEnumerable<KeyValuePair<string, string>> GetUrlEncodedData([CanBeNull] object obj)
@@ -280,16 +282,7 @@ namespace Paya.Automation.Editor
                 _Logger.Trace("Starting POST {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            //var cookieContainer = new CookieContainer();
-            //if (cookies != null)
-            //{
-            //    foreach (var cookie in cookies)
-            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            //}
-
-            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
             {
-                //using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
                 {
                     // Set Authentication Token
@@ -342,14 +335,6 @@ namespace Paya.Automation.Editor
                 _Logger.Trace("Starting GET {0}", uri);
 
             var baseUri = new Uri(uri.GetComponents(UriComponents.HostAndPort | UriComponents.SchemeAndServer | UriComponents.UserInfo, UriFormat.SafeUnescaped), UriKind.Absolute);
-            //var cookieContainer = new CookieContainer();
-            //if (cookies != null)
-            //{
-            //    foreach (var cookie in cookies)
-            //        cookieContainer.Add(baseUri, new Cookie(cookie.Key, cookie.Value));
-            //}
-
-            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
             using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseUri })
@@ -379,14 +364,6 @@ namespace Paya.Automation.Editor
                 _Logger.Trace("Starting GET {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            //var cookieContainer = new CookieContainer();
-            //if (cookies != null)
-            //{
-            //    foreach (var cookie in cookies)
-            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            //}
-
-            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
             using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
@@ -416,14 +393,6 @@ namespace Paya.Automation.Editor
                 _Logger.Trace("Starting GET {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            //var cookieContainer = new CookieContainer();
-            //if (cookies != null)
-            //{
-            //    foreach (var cookie in cookies)
-            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            //}
-
-            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
             using (var handler = new HttpClientHandler { })
             {
                 using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
@@ -454,16 +423,8 @@ namespace Paya.Automation.Editor
                 _Logger.Trace("Starting GET {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            var cookieContainer = new CookieContainer();
-            if (cookies != null)
+            var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
             {
-                foreach (var cookie in cookies)
-                    cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            }
-
-            using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
-            {
-                using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
                     w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
 
@@ -492,9 +453,8 @@ namespace Paya.Automation.Editor
 
             var baseAddress = new Uri(baseUrl);
 
-            using (var handler = new HttpClientHandler { })
+            var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
             {
-                using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
                     // Set Authentication Token
                     if (!string.IsNullOrWhiteSpace(token))
@@ -519,23 +479,68 @@ namespace Paya.Automation.Editor
             }
         }
 
+        internal static async Task<JObject> HttpPatchRequestAsync<T>([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
+        {
+            if (_NetLogger.IsTraceEnabled)
+                _Logger.Trace("Starting PUT {0}/{1}", baseUrl, url);
+
+            var baseAddress = new Uri(baseUrl);
+
+            var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
+            {
+                {
+                    // Set Authentication Token
+                    if (!string.IsNullOrWhiteSpace(token))
+                        w.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                    w.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
+
+                    var request = new HttpRequestMessage(new HttpMethod("PATCH"), url);
+                    request.Content = content;
+
+                    using (var result = await (cancellationTokenSource != null ? w.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationTokenSource.Token) : w.SendAsync(request)))
+                    {
+                        if (_NetLogger.IsDebugEnabled)
+                            _Logger.Debug("Completed Put {0}/{1} -> StatusCode = {2}", baseUrl, url, result.StatusCode);
+
+                        result.EnsureSuccessStatusCode();
+
+                        var response = new JObject();
+
+                        if (result.StatusCode == HttpStatusCode.NoContent || result.StatusCode == HttpStatusCode.OK)
+                        {
+                            var okStatus = new JObject
+                            {
+                                { "Succeed", true }
+                            };
+
+                            response.Add("Status", okStatus);
+
+                            return response;
+                        }
+
+                        var errorStatus = new JObject
+                            {
+                                { "Message", "Something Went Wrong While Update Document." }
+                            };
+
+                        response.Add("Status", errorStatus);
+
+                        return response;
+
+                    }
+                }
+            }
+        }
+
         internal static async Task<byte[]> HttpPostRequestBinaryAsync([NotNull] string baseUrl, string url, HttpContent content, [CanBeNull] string token, [CanBeNull] CancellationTokenSource cancellationTokenSource = null)
         {
             if (_NetLogger.IsTraceEnabled)
                 _Logger.Trace("Starting POST {0}/{1}", baseUrl, url);
 
             var baseAddress = new Uri(baseUrl);
-            //var cookieContainer = new CookieContainer();
-            //if (cookies != null)
-            //{
-            //    foreach (var cookie in cookies)
-            //        cookieContainer.Add(baseAddress, new Cookie(cookie.Key, cookie.Value));
-            //}
-
-            //using (var handler = new HttpClientHandler { UseCookies = true, CookieContainer = cookieContainer })
-            using (var handler = new HttpClientHandler { })
+            var w = _HttpClients.GetOrAdd(baseAddress, key => new HttpClient { BaseAddress = key });
             {
-                using (var w = new HttpClient(handler) { BaseAddress = baseAddress })
                 {
                     // Set Authentication Token
                     if (!string.IsNullOrWhiteSpace(token))

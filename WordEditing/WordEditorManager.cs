@@ -83,9 +83,9 @@
                     return;
                 }
 
-                var isReadOnly = !messageInfo.GetJsonValue<bool>("Permissions.ChangeBody");
+                var isReadOnly = !messageInfo.GetJsonValue<bool>("access.canChangeBody");
 
-                bool needsHeader = !StringComparer.OrdinalIgnoreCase.Equals(messageInfo.GetJsonValue<string>("Class.Code"), @"Varedeh");
+                bool needsHeader = !StringComparer.OrdinalIgnoreCase.Equals(messageInfo.GetJsonValue<string>("class.ref"), @"Varedeh");
 
 
                 var content = await this._SessionData.GetMessageContentAsync(needsHeader && this.InsertHeader, isReadOnly && this.InsertSigns, isReadOnly && this.InsertSignImage, isReadOnly && this.InsertCopyText, isReadOnly && this.InsertRemarks, cancellationTokenSource);
@@ -93,7 +93,7 @@
                 if (_Logger.IsDebugEnabled)
                     _Logger.Debug("Message content loaded");
 
-                var messageDisplayName = messageInfo.GetJsonValue<string>("DisplayName") ?? Guid.NewGuid().ToString();
+                var messageDisplayName = messageInfo.GetJsonValue<string>("displayName") ?? Guid.NewGuid().ToString();
 
                 if (_Logger.IsDebugEnabled)
                     _Logger.Debug("Message display name is {0}", messageDisplayName);
@@ -132,8 +132,8 @@
                         Debug.Assert(fi.Exists, "The temp file not found", "File not found: {0}", tempFile);
 
                         //fi.IsReadOnly = isReadOnly;
-                        fi.CreationTime = messageInfo.GetJsonValue<DateTime?>("CreatedAt") ?? DateTime.Now;
-                        fi.LastWriteTime = messageInfo.GetJsonValue<DateTime?>("ChangedAt") ?? DateTime.Now;
+                        fi.CreationTime = messageInfo.GetJsonValue<DateTime?>("createdAt") ?? DateTime.Now;
+                        fi.LastWriteTime = messageInfo.GetJsonValue<DateTime?>("changedAt") ?? DateTime.Now;
                     }
                     catch (Exception exp)
                     {
@@ -144,7 +144,7 @@
                     if (isReadOnly)
                         _Logger.Info("The message is read only");
 
-                    var canPrint = messageInfo.GetJsonValue<bool>("Permissions.Print");
+                    var canPrint = messageInfo.GetJsonValue<bool>("access.canPrint");
 
                     using (var editor = new WordEditor(tempFile, (isReadOnly ? WordEditorPermissions.None : WordEditorPermissions.Change) | (canPrint ? WordEditorPermissions.Print : WordEditorPermissions.None), msgInfo))
                     {
@@ -251,14 +251,14 @@
                 if (messageInfo == null)
                     return;
 
-                var hasPrintPermission = messageInfo.GetJsonValue<bool>("Permissions.Print");
+                var hasPrintPermission = messageInfo.GetJsonValue<bool>("access.canPrint");
                 if (!hasPrintPermission)
                     throw new SecurityException("Print permission denied");
 
                 bool insertHeader;
                 if (this.InsertHeader)
                 {
-                    if (StringComparer.OrdinalIgnoreCase.Equals(messageInfo.GetJsonValue<string>("Class.Code"), @"Varedeh"))
+                    if (StringComparer.OrdinalIgnoreCase.Equals(messageInfo.GetJsonValue<string>("class.ref"), @"Varedeh"))
                     {
                         insertHeader = false;
                     }
@@ -273,7 +273,7 @@
                 if (content == null)
                     return;
 
-                var messageDisplayName = messageInfo.GetJsonValue<string>("DisplayName");
+                var messageDisplayName = messageInfo.GetJsonValue<string>("displayName");
 
                 var tempFile = GetTempFileName(messageDisplayName);
 
@@ -289,8 +289,8 @@
                     Debug.Assert(fi.Exists, "The temp file not found", "File not found: {0}", tempFile);
 
                     //fi.IsReadOnly = true;
-                    fi.CreationTime = messageInfo.GetJsonValue<DateTime?>("CreatedAt") ?? DateTime.Now;
-                    fi.LastWriteTime = messageInfo.GetJsonValue<DateTime?>("ChangedAt") ?? DateTime.Now;
+                    fi.CreationTime = messageInfo.GetJsonValue<DateTime?>("createdAt") ?? DateTime.Now;
+                    fi.LastWriteTime = messageInfo.GetJsonValue<DateTime?>("changedAt") ?? DateTime.Now;
                 }
                 catch (Exception exp)
                 {
@@ -305,29 +305,6 @@
                     try
                     {
                         await editor.PrintAsync(withPreview, cancellationTokenSource);
-
-                        //if (File.Exists(tempFile))
-                        //{
-                        //    var body = await Utility.ReadAllBytesAsync(tempFile, cancellationTokenSource);
-
-                        //    if (body.Length == 0)
-                        //    {
-                        //        if (_Logger.IsWarnEnabled)
-                        //            _Logger.Warn("The current editing file is empty");
-                        //        return;
-                        //    }
-
-                        //    if (_Logger.IsDebugEnabled)
-                        //        _Logger.Debug("Uploading the message body");
-
-                        //    var result = await this._SessionData.SetBodyAsync(body, cancellationTokenSource: cancellationTokenSource);
-
-                        //    if (result != null && !result.IsSuccess)
-                        //    {
-                        //        if (_Logger.IsErrorEnabled)
-                        //            _Logger.Error("Error while uploading the message body to the server: {0}", result.Message);
-                        //    }
-                        //}
                     }
                     finally
                     {
@@ -437,13 +414,7 @@
             }
         }
 
-
-
         public bool CanChange { get { return this._CurrentEditor != null && ((IWordEditor)this._CurrentEditor).CanChange; } }
-
-
-
-
 
         public bool CanPrint { get { return this._CurrentEditor != null && ((IWordEditor)this._CurrentEditor).CanPrint; } }
 
