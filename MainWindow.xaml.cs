@@ -166,6 +166,7 @@
 
             try
             {
+                AutoUpdater.ReportErrors = true;
                 AutoUpdater.Start(this.UpdateUrl);
             }
             finally
