@@ -20,7 +20,7 @@
         [WebInvoke(UriTemplate = "/OpenBody", Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped,
             RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string token);
+        void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string token, string updateUrl);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/OpenBody", Method = "OPTIONS")]

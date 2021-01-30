@@ -197,8 +197,8 @@
 						  Style="{DynamicResource MetroCheckBox}"
                       Visibility="Hidden"/>
 
-            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                <TextBlock VerticalAlignment="Center">به روز رسانی خودکار:</TextBlock>
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" Margin="0,4,0,-4" ToolTip="{Binding ElementName=TheMainWindow, Path=UpdateUrl, TargetNullValue=NotSet}">
+                <TextBlock VerticalAlignment="Center" >به روز رسانی خودکار:</TextBlock>
                 <mah:ToggleSwitchButton IsChecked="{Binding ElementName=TheMainWindow, Path=EnableAutoUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="به روز رسانی خودکار" VerticalAlignment="Center" />
             </StackPanel>
 

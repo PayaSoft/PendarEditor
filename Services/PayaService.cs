@@ -112,16 +112,19 @@
         public void OpenBodyOptions()
         {
         }
+
         public void PrintOptions()
         {
         }
 
-        public void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string token)
+        public void OpenBody(string baseUrl, int storeIndex, string messageId, int messageSerial, bool insertHeader, bool insertSigns, bool insertSignImage, bool insertCopyText, bool insertRemarks, string token, string updateUrl)
         {
             if (IsOptions)
             {
                 return;
             }
+
+            App.Current.Dispatcher.Invoke(() => MainWindow.Instance.UpdateUrl = updateUrl);
 
             var loadingItem = new BaseUrlMessageSerialTuple(baseUrl, messageSerial);
             lock (_LoadingMessages)

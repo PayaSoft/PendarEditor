@@ -6,6 +6,7 @@
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Timers;
     using System.Windows;
     using System.Windows.Controls.Primitives;
     using System.Windows.Input;
@@ -16,6 +17,8 @@
     using Microsoft.Win32;
     using NLog;
     using Paya.Cryptography;
+    using Timer = System.Timers.Timer;
+    using AutoUpdaterDotNET;
 
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
@@ -56,6 +59,10 @@
         #endregion
 
         #region Static Fields
+
+        private readonly SemaphoreSlim _UpdateSemaphore = new SemaphoreSlim(1);
+
+        private readonly Timer _UpdateTimer = new Timer(TimeSpan.FromMinutes(20).TotalMilliseconds);
 
         private static readonly Logger _Logger = LogManager.GetCurrentClassLogger();
 
@@ -104,13 +111,13 @@
                                                                                                           typeof(MainWindow),
                                                                                                           new UIPropertyMetadata(FlowDirection.LeftToRight));
 
+        public static MainWindow Instance { get; private set; }
+
+
+
         #endregion
 
         #region Fields
-
-        private CancellationTokenSource _CancellationTokenSource;
-
-        private readonly object _CancellationTokenSourceSyncObj = new object();
 
         private bool _FormLoaded;
 
@@ -131,6 +138,9 @@
 
             this.InitializeComponent();
 
+            Instance = this;
+            this._UpdateTimer.Elapsed += UpdateTimer_Elapsed;
+
             this.DirectionsCombobox.DataContext = this.LayoutRoot.DataContext;
 
             this.Title = "سرویس اتوماسیون اداری پایا (پندار)" + " " + Internal.Version;
@@ -143,6 +153,25 @@
 
             if (_Logger.IsInfoEnabled)
                 _Logger.Info("پنجره‌ی اصلی ایجاد شد");
+        }
+
+        private void UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            PerformUpdate();
+        }
+
+        private async void PerformUpdate()
+        {
+            await this._UpdateSemaphore.WaitAsync();
+
+            try
+            {
+                AutoUpdater.Start(this.UpdateUrl);
+            }
+            finally
+            {
+                this._UpdateSemaphore.Release();
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -331,7 +360,8 @@
                 //            _Logger.Error("Cannot create updater to {0}", loginData.Password);
                 //    }
                 //}
-                /*else*/ if (loginData.Username.Equals(@"help", StringComparison.OrdinalIgnoreCase))
+                /*else*/
+                if (loginData.Username.Equals(@"help", StringComparison.OrdinalIgnoreCase))
                 {
                     await this.ShowMessageAsync("HELP", @"help\r\nconfig updaters\r\nupdater <uri>\r\n");
                 }
@@ -439,7 +469,7 @@
             _Logger.Debug("مخفی کردن پنجره‌ی اصلی برنامه");
         }
 
-        private async void TheMainWindow_Initialized(object sender, EventArgs e)
+        private void TheMainWindow_Initialized(object sender, EventArgs e)
         {
             if (_Logger.IsTraceEnabled)
             {
@@ -560,29 +590,11 @@
 
         #endregion
 
-        private async void CheckForUpdateMenuItem_Click(object sender, RoutedEventArgs e)
+        private void CheckForUpdateMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            CancellationTokenSource cts;
-
-            lock (this._CancellationTokenSourceSyncObj)
-            {
-                if (this._CancellationTokenSource != null)
-                    return;
-                this._CancellationTokenSource = cts = new CancellationTokenSource();
-            }
-
-            try
-            {
-                await App.CheckForUpdatesAsync(cts);
-            }
-            finally
-            {
-                lock (this._CancellationTokenSourceSyncObj)
-                {
-                    this._CancellationTokenSource = null;
-                }
-            }
+            PerformUpdate();
         }
+
         private void Test_CheckBox_Visible_Click(object sender, RoutedEventArgs e)
         {
             Test = true;
@@ -606,7 +618,6 @@
             w.Activate();
         }
 
-
         public bool EnableAutoUpdate
         {
             get { return (bool)GetValue(EnableAutoUpdateProperty); }
@@ -619,6 +630,8 @@
 
         private static void OnEnableAutoUpdateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            ((MainWindow)d)._UpdateTimer.Enabled = (bool)e.NewValue;
+
             try
             {
                 using (var key = GetEnableAutoUpdateKey())
@@ -629,9 +642,6 @@
                         key.Close();
                     }
                 }
-
-                //foreach (var u in App.ClientUpdaterFactory.Updaters)
-                //    u.EnableAutoUpdate = (bool)e.NewValue;
             }
             catch (Exception exp)
             {
@@ -652,5 +662,20 @@
             }
             return key;
         }
+
+
+
+
+
+        public string UpdateUrl
+        {
+            get { return (string)GetValue(UpdateUrlProperty); }
+            set { SetValue(UpdateUrlProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for UpdateUrl.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty UpdateUrlProperty =
+            DependencyProperty.Register("UpdateUrl", typeof(string), typeof(MainWindow), new PropertyMetadata(null));
+
     }
 }

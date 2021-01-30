@@ -505,6 +505,9 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autoupdater.NET.Official">
+      <Version>1.6.4</Version>
+    </PackageReference>
     <PackageReference Include="DotNetZip">
       <Version>1.13.8</Version>
     </PackageReference>
